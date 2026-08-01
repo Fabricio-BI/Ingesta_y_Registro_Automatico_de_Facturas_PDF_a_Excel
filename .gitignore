@@ -1,0 +1,5 @@
+venv/
+facturas_pdf/
+__pycache__/
+*.pyc
+.DS_Store
