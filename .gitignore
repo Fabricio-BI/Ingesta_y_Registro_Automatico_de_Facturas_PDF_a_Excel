@@ -3,3 +3,5 @@ facturas_pdf/
 __pycache__/
 *.pyc
 .DS_Store
+# Excluir archivos .bat
+*.bat
