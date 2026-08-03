@@ -88,7 +88,7 @@ El código está estructurado bajo un diseno modular para facilitar su mantenimi
 
 Una vez finalizado el procesamiento, el sistema genera un reporte en formato Excel .
 
-![Ejemplo de reporte Excel con validación de errores](assets/libro.jpg)
+![Ejemplo de reporte Excel con validación de errores](assets/libro.JPG)
 
 Para optimizar el tiempo de revisión, el archivo aplica formatos de celda específicos: las facturas válidas se registran de forma ordinaria, mientras que aquellas que presentan errores aritméticos, campos vacíos o inconsistencias críticas se resaltan automáticamente en **rojo claro**. Esto permite al equipo de contabilidad aplicar una auditoría enfocada exclusivamente en los documentos con anomalías de extracción o de emisión.
 
