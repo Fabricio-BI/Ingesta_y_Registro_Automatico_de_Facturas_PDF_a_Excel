@@ -1,7 +1,19 @@
 venv/
-facturas_pdf/
 __pycache__/
 *.pyc
 .DS_Store
+.clineignore
 # Excluir archivos .bat
 *.bat
+
+# Secretos -- NUNCA subir esto a GitHub
+.env
+
+# Archivos generados por el proyecto (no son código fuente)
+salida/*.xlsx
+log_ejecuciones.txt
+
+# Archivos de PyInstaller (si se genera el ejecutable)
+build/
+dist/
+*.spec

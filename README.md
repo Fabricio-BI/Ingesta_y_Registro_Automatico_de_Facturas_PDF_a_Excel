@@ -1,189 +1,131 @@
-# Ingesta y Registro Automático de Facturas PDF a Excel
+# Ingesta y Registro Automático de Facturas PDF a Excel (Anexo Transaccional)
 
-## Aviso sobre los datos de este repositorio
+Este proyecto es una solución automatizada de nivel empresarial diseñada para optimizar el proceso de conciliación fiscal mensual. Automatiza la ingesta de facturas PDF, el reconocimiento del proveedor, la extracción estructurada de datos y la validación aritmética, consolidando toda la información en un reporte Excel listo para el Anexo Transaccional.
 
-Todas las facturas de muestra (`facturas_pdf/`), nombres de proveedores,
-RUCs, clientes y montos usados en este proyecto son **ficticios**,
-creados únicamente con fines de desarrollo y demostración. Ningún dato
-corresponde a una empresa, persona o transacción real. La estructura
-visual de los documentos (RIDE) sí sigue el estándar público definido
-por el SRI de Ecuador, pero el contenido es inventado.
+---
 
-## El problema real
+## 🎯 Justificación del Proyecto e Impacto en el Negocio
 
-A fin de cada mes, un analista de conciliación recibe un lote de facturas
-de proveedores bancarios recurrentes (comisiones de mantenimiento,
-transferencias, tarjetas de crédito, etc.) y necesita registrar sus datos
-en un Anexo Transaccional para fines fiscales y contables.
+A fin de cada mes, un analista de conciliación recibe un lote de facturas de proveedores bancarios recurrentes y debe transcribir manualmente al menos 10 campos por factura (RUC, autorizaciones, fechas, montos, IVA). Este proceso manual implica descargar archivos, digitar datos y verificar cuadres aritméticos de forma repetitiva.
 
-Este proceso, hecho a mano, implica:
+### El Impacto de esta Solución (ROI Estimado)
 
-- Descargar cada factura individualmente.
-- Leer y transcribir 10 datos por factura (RUC, número de factura,
-  fechas, montos, IVA, etc.).
-- Revisar que los montos cuadren correctamente.
+Al automatizar el pipeline de ingesta y validación, transformamos un proceso manual propenso a errores en un flujo de supervisión rápido y controlado:
 
-En un caso real de referencia: **12-26 facturas por mes, de 5-7
-proveedores, concentradas en su mayoría en 2-3 bancos**, con un tiempo
-estimado de **2 horas mensuales** y al menos un error de digitación
-identificado en el proceso manual.
+*   **Ahorro de Tiempo:** Reducción del tiempo de procesamiento mensual de **~2 horas de transcripción manual a menos de 1 minuto** de ejecución automatizada. Proyectado a un año, libera el equivalente a **24 horas laborales** para tareas de análisis de mayor valor.
+*   **Eliminación de Errores Humanos:** La validación aritmética integrada (Base Imponible + IVA = Total) detecta e introduce alertas visuales sobre inconsistencias antes de que ingresen al sistema contable final, previniendo multas y auditorías costosas.
+*   **Trazabilidad 100% Auditable:** Cada registro en el reporte de salida documenta qué plantilla procesó el documento y si pasó los controles de calidad, ofreciendo un registro auditable del que carecía el proceso manual.
 
-## La propuesta
+---
 
-Un sistema que automatiza las 4 etapas del proceso — lectura del PDF,
-reconocimiento del proveedor, extracción de los 10 campos, y validación
-aritmética — dejando al analista únicamente la revisión de los casos que
-el propio sistema marca como dudosos, en vez de procesar cada factura
-de punta a punta a mano.
+## 🧠 Enfoque Arquitectónico: Reglas Deterministas + Fallback de IA
 
-### Por qué reglas y no IA desde el principio
+Una de las decisiones clave de ingeniería en este proyecto es su enfoque pragmático y costo-eficiente: **¿Por qué usar reglas en lugar de Inteligencia Artificial para el volumen recurrente?**
 
-Con solo **5 plantillas** (una por proveedor recurrente) se cubre el
-100% del volumen mensual típico. Para este volumen y esta variedad, un
-sistema de reglas (regex) es más económico y más confiable que una
-solución basada en IA:
+| Métrica | Enfoque por Reglas (Este Proyecto) | Enfoque Puro con IA |
+| :--- | :--- | :--- |
+| **Costo por factura** | **$0.00** (Ejecución local) | Variable y recurrente (Costos de API) |
+| **Privacidad de datos** | **100% Local** (La información no sale de la red) | Depende de políticas de terceros |
+| **Previsibilidad** | **Determinista** (Mismo entrada = idéntico resultado) | Estocástico (Puede variar entre ejecuciones) |
+| **Mantenimiento** | Una plantilla por nuevo banco emisor | Ninguno (pero requiere monitoreo de alucinaciones) |
 
-| | Reglas (este proyecto) | IA |
-|---|---|---|
-| Costo por factura procesada | $0 | Variable, recurrente |
-| Privacidad de datos | Todo local, nada sale de la máquina | Depende del proveedor de IA |
-| Previsibilidad | Determinístico -- mismo resultado siempre | Puede variar entre corridas |
-| Mantenimiento | Una plantilla nueva por proveedor nuevo | Ninguno, generaliza solo |
-
-Para un proceso con proveedores fijos y conocidos, como es este caso, el
-costo de mantenimiento de las reglas es mínimo (una plantilla se escribe
-una sola vez y sirve para siempre), mientras que un enfoque de IA
-generaría un costo recurrente para resolver algo que las reglas ya
-resuelven gratis.
-
-## El impacto de adoptarlo
-
-- **Tiempo:** de ~2 horas mensuales de trabajo manual a minutos de
-  supervisión. Proyectado a un año, del orden de 24 horas de trabajo
-  liberadas para tareas de mayor valor.
-- **Errores:** la validación aritmética automática (Base Imponible +
-  IVA = Total) detecta inconsistencias antes de que lleguen al Anexo
-  final, en vez de descubrirlas después en una auditoría o cruce
-  contable.
-- **Trazabilidad:** cada fila del Excel resultante indica qué plantilla
-  la procesó y si pasó o no la validación -- un registro auditable de
-  cómo se generó cada dato, algo que el proceso manual no ofrecía.
-- **Escalabilidad controlada:** agregar un proveedor nuevo no requiere
-  tocar el motor del sistema, solo sumar una plantilla (ver más abajo).
-
-### Por qué Markitdown como paso de conversión
-
-El sistema no lee el PDF directamente -- primero lo convierte a texto
-Markdown (librería Markitdown). Esto tiene dos beneficios, uno inmediato
-y uno a futuro:
-
-- **Hoy:** Markitdown preserva las tablas del documento original como
-  filas `| col | col |`, lo que hace que los patrones de extracción
-  (regex) sean mucho más simples y confiables que si se buscara sobre
-  texto plano sin estructura.
-- **A futuro:** si se conecta un extractor de IA como respaldo (ver
-  sección siguiente), puede reutilizar este mismo texto ya convertido
-  en vez de enviarle el PDF como imagen al modelo. Esto evita el uso de
-  tokens de visión (sustancialmente más costosos por página que texto
-  plano), y le entrega al modelo una estructura ya resuelta en vez de
-  pedirle que interprete el layout visual del documento.
-
-## ¿Está listo para incorporar IA si el volumen o la variedad de proveedores crece?
-
-**La arquitectura sí está preparada; falta el código específico del
-extractor de IA en sí.** Esto es intencional: no tiene sentido pagar
-por una capacidad que hoy no se necesita, pero sí conviene que el
-sistema esté diseñado para no requerir un rediseño el día que se
-necesite.
-
-Concretamente:
-
-- Existe un **contrato de datos fijo** (`CAMPOS_FACTURA`, en
-  `plantillas/esquema.py`) que cualquier extractor -- por reglas o por
-  IA -- debe respetar. Un extractor de IA que devuelva esos mismos 10
-  campos se integraría sin modificar el validador ni el exportador.
-- Existe un **punto de enganche ya identificado** en `main.py`: cuando
-  ninguna plantilla reconoce una factura, hoy se marca como "sin
-  plantilla"; ahí es donde, en el futuro, se llamaría al extractor de
-  IA como respaldo, antes de dar la factura por perdida.
-- El **validador aritmético es agnóstico al origen del dato** -- una
-  factura resuelta por IA pasaría exactamente por el mismo control de
-  calidad que una resuelta por regex.
-
-Lo que faltaría desarrollar, si llega el momento:
-
-1. Un módulo nuevo (`core/extractor_ia.py`) que reciba el texto de la
-   factura y devuelva un diccionario con los mismos 10 campos.
-2. Una modificación puntual en `main.py` para llamar a ese módulo
-   cuando `detectar_plantilla` no reconozca ningún proveedor.
-3. Definir cuándo activarlo: se recomienda hacerlo cuantitativamente --
-   por ejemplo, si el porcentaje de facturas "sin plantilla" supera un
-   umbral (10-15% del volumen mensual) durante 2-3 meses seguidos, es
-   señal de que conviene invertir en esa pieza.
-
-## Cómo se ve el proceso, paso a paso
+### El Flujo de Trabajo Híbrido
+Para optimizar costos y garantizar robustez, el sistema utiliza un **pipeline híbrido**:
+1.  **Conversión Estructurada:** El PDF se convierte a Markdown preservando el formato de tablas (gracias a `MarkItDown`), lo que simplifica enormemente las expresiones regulares.
+2.  **Motor de Reglas (100% Gratis):** Intenta extraer los datos utilizando plantillas Regex optimizadas para proveedores conocidos.
+3.  **Fallback Inteligente con IA:** Si el proveedor no es reconocido, el sistema activa automáticamente un extractor basado en **Google Gemini** que, bajo un contrato de datos estricto, recupera los campos faltantes sin detener la ejecución.
 
 ```
-PDF de la factura
-   |
-   v
-[1] Conversión a Markdown (Markitdown)
-   |
-   v
-[2] Reconocimiento del proveedor (5 plantillas registradas)
-   |
-   v
-[3] Extracción de los 10 campos (regex por proveedor)
-   |
-   v
-[4] Validación (completitud + Base Imponible + IVA = Total)
-   |
-   +-- Válida --------------------> Excel (fila normal)
-   |
-   +-- Inconsistente / incompleta -> Excel (fila marcada en rojo)
+PDF de la Factura
+       │
+       ▼
+[1] Conversión a Markdown (Estructuración de tablas)
+       │
+       ▼
+[2] Motor de Reglas (Regex) ───¿Reconocido?───► [Sí] ──► Extracción por Plantilla ──┐
+       │                                                                            │
+      [No]                                                                          ▼
+       │                                                                  [3] Validador Aritmético
+       ▼                                                                   (Base + IVA == Total)
+[Fallback con Gemini-3.5-Flash] ────────────────────────────────────────────────────│
+                                                                                    ▼
+                                                                        [4] Reporte Excel Generado
+                                                                        (Filas con error en ROJO)
 ```
 
-## Estructura del proyecto
+---
+
+## 🛠️ Arquitectura y Tecnologías Demostradas (Para Tech Leads)
+
+Este repositorio ha sido diseñado aplicando buenas prácticas de ingeniería de software y patrones de diseño modernos:
+
+*   **Principio Abierto/Cerrado (SOLID OCP):** El motor de procesamiento (`core/procesamiento.py`) está completamente cerrado a modificación pero abierto a la extensión. Para dar soporte a un nuevo banco, solo se agrega una estructura de datos en `plantillas/plantillas_fct.py` sin tocar el código fuente del sistema.
+*   **Diseño Guiado por Contratos:** El sistema define un esquema rígido de datos (`CAMPOS_FACTURA` en `plantillas/esquema.py`). El extractor de IA consume este esquema dinámicamente para estructurar sus outputs en formato JSON, garantizando consistencia.
+*   **Programación Defensiva:** El módulo `core/validador.py` aísla los errores de digitación y fallos de formato, previniendo interrupciones inesperadas del programa (*crashes*) y asegurando la continuidad del procesamiento de lotes grandes.
+
+### Estructura de Archivos del Proyecto
 
 ```
-Ingesta_y_Registro_Automatico_de_Facturas_PDF_a_Excel/
-├── main.py                        Orquestador del flujo completo
-├── explorar_factura.py            Inspecciona el Markdown de una factura
-├── procesar_conciliacion.bat      Ejecución con doble clic (Windows)
-├── requirements.txt
+├── main.py                     # Orquestador principal del pipeline
+├── explorar_factura.py         # Utilidad CLI para analizar el Markdown de nuevos PDFs
+├── procesar_conciliacion.bat   # Script ejecutable de doble clic para Windows (UX Contable)
 ├── core/
-│   ├── procesamiento.py           Conversión + detección + extracción
-│   ├── validador.py               Completitud + coherencia aritmética
-│   └── exportador_excel.py        Generación del Excel final
+│   ├── procesamiento.py        # Conversor de PDF a MD y despachador de plantillas
+│   ├── validador.py            # Validador de completitud y coherencia de montos
+│   ├── extractor_ia.py         # Fallback inteligente con Google Gemini API
+│   └── exportador_excel.py     # Generador de reportes visuales con openpyxl
 ├── plantillas/
-│   ├── esquema.py                 Contrato de los 10 campos
-│   ├── plantillas_bancos.py       Las 5 plantillas de proveedores
-│   └── registro.py                Lista de plantillas activas
-├── facturas_pdf/                  Carpeta de entrada
-└── salida/                        Carpeta de salida (Excel generado)
+│   ├── esquema.py              # Definición del contrato de datos y clases base
+│   ├── plantillas_fct.py       # Expresiones regulares para cada banco conocido
+│   └── registro.py             # Registro centralizado de plantillas activas
+├── facturas_pdf/               # Carpeta de entrada para los PDFs mensuales
+└── salida/                     # Carpeta de salida del reporte Excel final
 ```
 
-## Proveedores cubiertos hoy
+---
 
-| Proveedor | Plantilla |
-|---|---|
-| Banco Productivo Nacional | `banco_productivo_nacional` |
-| Banco Cordillera | `banco_cordillera` |
-| Banco Solidaridad Andina | `banco_solidaridad_andina` |
-| Tarjeta Cumbre Zenith / Prisma / Nortis / Elite Pay | `tarjeta_cumbre_*` (patrones compartidos) |
+## 📊 Vista Previa del Reporte de Salida (Excel)
 
-## Cómo usarlo
+Cuando el proceso finaliza, genera un libro de Excel formateado. Las facturas que no pasan la validación aritmética se marcan en **Rojo Claro** indicando el motivo para que el analista realice una **revisión por excepción**:
 
-1. Colocar los PDFs de las facturas del mes en `facturas_pdf/`.
-2. Doble clic en `procesar_conciliacion.bat` (o `python main.py` desde
-   la terminal, con el entorno virtual activado).
-3. Retirar el Excel de `salida/facturas_extraidas.xlsx`.
-4. Revisar únicamente las filas marcadas en rojo, si las hay.
+| Proveedor | Número Factura | Fecha Emisión | Base Imponible | Monto IVA | Total | Plantilla Usada | Estado | Errores |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| Banco Cordillera | 001-002-0000451 | 15/10/2025 | 100.00 | 15.00 | 115.00 | `banco_cordillera` | **Válida** | |
+| Tarjeta Cumbre Zenith | 005-010-0000897 | 20/10/2025 | 50.00 | 7.50 | 57.50 | `tarjeta_cumbre_zenith` | **Válida** | |
+| <font color="red">Proveedor Desconocido</font> | 002-001-0000123 | 21/10/2025 | 80.00 | 10.00 | **120.00** | `ia_gemini` | <font color="red">**Revisión Manual**</font> | <font color="red">Inconsistencia aritmética: 80.00 + 10.00 != 120.00</font> |
 
-## Cómo agregar un proveedor nuevo
+---
 
-1. Colocar una factura de muestra en `facturas_pdf/` y correr
-   `explorar_factura.py` para ver su texto real.
-2. Agregar una `Plantilla` nueva en `plantillas/plantillas_bancos.py`.
-3. Registrarla en `plantillas/registro.py`.
-4. No es necesario modificar `core/` ni `main.py`.
+## 🚀 Guía de Uso Rápido
+
+### Requisitos Previos
+1. Python 3.10 o superior instalado.
+2. Instalar las dependencias del proyecto:
+   ```bash
+   pip install -r requirements.txt
+   ```
+3. *(Opcional)* Si deseas habilitar el fallback de IA, configura tu variable de entorno:
+   ```bash
+   # En Windows (CMD)
+   set GEMINI_API_KEY=tu_api_key_aquí
+   # En Linux/macOS
+   export GEMINI_API_KEY="tu_api_key_aquí"
+   ```
+
+### Instrucciones de Ejecución
+1.  Coloca las facturas PDF del mes dentro de la carpeta `facturas_pdf/`.
+2.  Ejecuta el programa:
+    *   **En Windows:** Haz doble clic sobre el archivo `procesar_conciliacion.bat`.
+    *   **Desde Consola:** Corre `python main.py`.
+3.  Retira el reporte resultante desde `salida/facturas_extraidas.xlsx` y revisa únicamente las filas marcadas en rojo.
+
+---
+
+## 🛠️ Próximos Pasos (Roadmap de Producción)
+
+Para escalar esta herramienta local a una solución SaaS o un microservicio en la nube, se tiene contemplado:
+
+1.  **Ingesta Automática:** Integrar un conector IMAP para descargar facturas directamente desde un correo dedicado (`facturas@empresa.com`).
+2.  **Pruebas de Regresión (`pytest`):** Automatizar pruebas unitarias sobre textos Markdown de prueba para garantizar que los ajustes en las expresiones de Regex no rompan extracciones anteriores.
+3.  **Dockerización:** Empaquetar el servicio en un contenedor Docker para despliegues portables y robustos en AWS ECS o Google Cloud Run.
+4.  **Monitoreo con Logs:** Reemplazar las salidas de consola (`print`) por el módulo nativo de `logging` para una auditoría avanzada en servidores.

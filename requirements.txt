@@ -1,2 +1,3 @@
 markitdown[pdf]
 openpyxl
+google-genai
