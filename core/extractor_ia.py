@@ -4,14 +4,26 @@ Extractor de respaldo basado en IA (Google Gemini).
 Se activa únicamente cuando ninguna plantilla de reglas reconoce el
 proveedor de una factura -- ver el punto de enganche en main.py.
 
+Respeta el mismo contrato de datos que las plantillas por reglas
+(CAMPOS_FACTURA, en plantillas/esquema.py): recibe el texto Markdown
+de la factura y devuelve un diccionario con los mismos 10 campos, para
+que el resto del sistema (validador, exportador) no note ninguna
+diferencia según de dónde vino el dato.
+
+Requiere una variable de entorno GEMINI_API_KEY con la clave de la API
+-- la clave NUNCA se escribe en este archivo (por seguridad, para que
+el código se pueda subir a un repositorio público sin exponerla).
 """
 
 import json
 import os
 
+from dotenv import load_dotenv
 from google import genai
 
 from plantillas.esquema import CAMPOS_FACTURA
+
+load_dotenv()  # Lee el archivo .env (si existe) y carga sus variables
 
 MODELO = "gemini-3.5-flash"
 
@@ -49,6 +61,9 @@ def extraer_con_ia(texto_markdown: str) -> dict | None:
     Extrae los CAMPOS_FACTURA de una factura usando Gemini, como
     respaldo cuando ninguna plantilla de reglas la reconoció.
 
+    Args:
+        texto_markdown: el mismo texto que usan las plantillas por
+            reglas (ya convertido de PDF a Markdown).
     """
     api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
@@ -91,6 +106,3 @@ def extraer_con_ia(texto_markdown: str) -> dict | None:
     except Exception as error:
         print(f"  [IA] Error al llamar a la API: {error}")
         return None
-
-
-
