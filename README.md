@@ -1,43 +1,24 @@
 # Ingesta y Registro Automático de Facturas PDF a Excel
 
-Este proyecto automatiza la ingesta, lectura y consolidación de facturas electrónicas en formato PDF, estructurando la información directamente en un reporte de Excel listo para la conciliación fiscal y la preparación de anexos transaccionales. 
+El proyecto automatiza la ingesta, lectura y consolidación de facturas electrónicas que se reciben en formato PDF, estructurando la información en un reporte de Excel listo para preparar el anexo transaccional fiscal y su posterior registro contable.
 
-El sistema reduce la carga operativa del departamento de contabilidad y finanzas al eliminar la digitación manual y aplicar reglas de validación automática para asegurar la calidad de la información antes de su registro definitivo.
+El equipo contable destina muchas horas a descargar facturas de proveedores recurrentes (servicios bancarios generan facturas por IVA de comisiones) y transcribir manualmente números de autorización de 49 dígitos, RUCs, fechas de emisión y desgloses de impuestos. Es una tarea que genera carga y retrasos en el cierre, producto del volumen de facturas por registrar, además de aumentar el riesgo de errores por mala digitación.
 
----
+La implementación del proyecto reduce la carga operativa y el tiempo destinado a la digitación manual y, además, aplicando la validación de montos, asegura la precisión de la información extraída antes de su registro definitivo.
 
-## Justificación del Proyecto e Impacto en el Negocio
-
-En los cierres mensuales, el equipo de contabilidad y tesorería suele destinar muchas  horas a descargar facturas de proveedores recurrentes (como servicios bancarios o de telecomunicaciones) y transcribir manualmente datos complejos como números de autorización de 49 dígitos, RUCs, fechas de emisión y desgloses de impuestos. Este proceso no solo consume tiempo, sino que incrementa la probabilidad de errores tipográficos que luego dificultan la conciliación bancaria o generan inconsistencias en los anexos fiscales.
-
-### Impacto Operativo
-
-Este sistema transforma el flujo de trabajo tradicional en un modelo eficiente de supervisión y gestión por excepciones:
-
-*   **Optimización del Tiempo:** El procesamiento de un lote de facturas pasa de requerir horas de transcripción manual a completarse en pocos segundos de ejecución automatizada.
-*   **Reducción del Margen de Error:** Al automatizar la extracción de datos mediante algoritmos y validarlos antes de su almacenamiento, se eliminan los errores de digitación de números de autorización y RUCs.
-*   **Detección Inmediata de Discrepancias:** El validador aritmético integrado asegura la coherencia matemática de cada documento, permitiendo al analista enfocarse únicamente en corregir las excepciones detectadas por el sistema.
-
----
 
 ## Enfoque de Procesamiento: Reglas Deterministas y Respaldo con Inteligencia Artificial
 
-Para optimizar la precisión y mantener un control estricto de los costos, el sistema utiliza un enfoque híbrido que combina extracción determinista para proveedores conocidos y con inteligencia artificial para casos no contemplados en el catálogo de proveedores.
 
-| Criterio | Motor de Reglas (Predeterminado) | Extracción con Inteligencia Artificial (Fallback) |
-| :--- | :--- | :--- |
-| **Costo por factura** | Sin costo (ejecución 100% local) | Variable según consumo de API |
-| **Privacidad de datos** | Completa (los datos no salen del entorno local) |Depende del plan (pagado = no se usa para netrenar modelos) o modelo local para privacidad total |
-| **Consistencia** | Totalmente predecible (mismo documento = idéntico resultado) | Alta, gracias a un esquema JSON estricto que restringe la salida del modelo¹ |
-| **Mantenimiento** | Requiere definir un patrón por cada nuevo formato | Se adapta automáticamente a nuevos formatos sin intervención manual |
+Para optimizar la precisión y mantener un control estricto de los costos, el sistema utiliza un enfoque híbrido que combina extracción determinista para proveedores conocidos y con inteligencia artificial para casos no contemplados en el catálogo de proveedores. 
+Cualquier extracción inconsistente se marca automáticamente para revisión manual .
 
-¹ *El riesgo de alucinaciones se controla mediante un esquema de datos estricto (contrato JSON) y validación aritmética posterior — cualquier extracción inconsistente se marca automáticamente para revisión manual, sin necesidad de supervisión humana constante.*
 
 ### Flujo de Trabajo Híbrido
 
 1.  **Conversión de PDF a Texto Estructurado:** Las facturas en formato PDF se convierten a Markdown, lo que preserva la estructura de tablas y facilita una búsqueda precisa de la información.
 2.  **Extracción por Reglas (100% Determinista):** Si el proveedor es identificado dentro del catálogo preconfigurado, el sistema aplica plantillas de expresiones regulares diseñadas específicamente para ese formato de factura.
-3.  **Respaldo con Inteligencia Artificial (Fallback):** En caso de procesar un documento de un proveedor nuevo o desconocido, el sistema redirige automáticamente el texto a un modelo de lenguaje avanzado (**Google Gemini 1.5 Flash**) utilizando un esquema estricto de datos en formato JSON para extraer la información estructurada sin interrumpir el proceso de lote.
+3.  **Respaldo con Inteligencia Artificial (Fallback):** En caso de procesar un documento de un proveedor nuevo o desconocido, el sistema redirige automáticamente el texto a un modelo inteligencia artificial ,utilizando un esquema estricto de datos en formato JSON para extraer la información estructurada sin interrumpir el proceso de lote.
 
 
 ```mermaid
@@ -55,15 +36,17 @@ flowchart TD
 
 ---
 
-## Arquitectura y Estructura Técnica del Proyecto
+## Estructura  del Proyecto
 
 El código está estructurado bajo un diseno modular para facilitar su mantenimiento y permitir la adición de nuevos formatos de factura sin modificar la lógica principal de procesamiento.
 
-*   **Extensibilidad del Catálogo:** Para dar soporte a un nuevo emisor de facturas, basta con añadir una nueva estructura de expresiones regulares en el archivo de plantillas, sin necesidad de alterar el orquestador principal.
-*   **Validación de Datos por Contrato:** Se define un esquema unificado de datos contables. Este esquema es consumido por los módulos de extracción y por la inteligencia artificial, asegurando que todos los reportes sigan exactamente la misma estructura de campos.
-*   **Validación Matemática Preventiva:** El validador aritmético comprueba que la suma de la Base Imponible y el IVA coincida exactamente con el Total registrado en la factura. En caso de discrepancias, el sistema aísla el registro para proteger la integridad del reporte contable final.
 
-### Estructura de Archivos
+Para dar soporte a un nuevo emisor de facturas, basta con añadir una nueva estructura de expresiones regulares en el archivo de plantillas, sin necesidad de alterar el orquestador principal.
+
+Se define un esquema unificado de datos contables. Este esquema es consumido por los módulos de extracción y por la inteligencia artificial, asegurando que todos los reportes sigan exactamente la misma estructura de campos.
+
+El validador aritmético comprueba que la suma de la Base Imponible y el IVA coincida exactamente con el Total registrado en la factura. En caso de discrepancias, el sistema aísla el registro para proteger la integridad del reporte contable final.
+
 
 ```
 ├── main.py                     # Orquestador principal del pipeline de facturación
@@ -86,11 +69,11 @@ El código está estructurado bajo un diseno modular para facilitar su mantenimi
 
 ## Reporte de Salida y Gestión de Excepciones
 
-Una vez finalizado el procesamiento, el sistema genera un reporte en formato Excel .
+Una vez finalizado el procesamiento se genera un reporte en formato Excel .
 
 ![Ejemplo de reporte Excel con validación de errores](assets/libro.JPG)
 
-Para optimizar el tiempo de revisión, el archivo aplica formatos de celda específicos: las facturas válidas se registran de forma ordinaria, mientras que aquellas que presentan errores aritméticos, campos vacíos o inconsistencias críticas se resaltan automáticamente en **rojo claro**. Esto permite al equipo de contabilidad aplicar una auditoría enfocada exclusivamente en los documentos con anomalías de extracción o de emisión.
+Para optimizar el tiempo de revisión, se aplican  formatos de celda específicos: las facturas válidas se registran de forma ordinaria, mientras que aquellas que presentan errores aritméticos, campos vacíos o inconsistencias críticas se resaltan automáticamente en rojo claro . Esto permite enfocarse  exclusivamente en los documentos con anomalías de extracción o de emisión.
 
 
 
@@ -105,13 +88,13 @@ Para optimizar el tiempo de revisión, el archivo aplica formatos de celda espec
    ```bash
    pip install -r requirements.txt
    ```
-3. Configurar la clave de acceso de Gemini para habilitar el procesamiento inteligente de facturas no clasificadas:
+3. Configurar la clave de acceso del modelo de inteligencia artifical  para habilitar el procesamiento  de facturas no clasificadas:
    ```bash
    # En Windows (CMD)
-   set GEMINI_API_KEY=tu_api_key_aquí
+   set MODELO_API_KEY=tu_api_key_aquí
 
    # En Linux/macOS
-   export GEMINI_API_KEY="tu_api_key_aquí"
+   export MODELO_API_KEY="tu_api_key_aquí"
    ```
 
 ### Instrucciones de Ejecución
@@ -128,7 +111,6 @@ Para optimizar el tiempo de revisión, el archivo aplica formatos de celda espec
 
 Con el fin de integrar este sistema en flujos de trabajo más amplios y robustos, se contemplan las siguientes mejoras operativas:
 
-1.  **Conexión Directa a Correo Electrónico:** Habilitar un servicio de lectura automática mediante protocolo IMAP para descargar y procesar las facturas adjuntas que llegan a un buzón corporativo específico de proveedores.
-2.  **Pruebas Automatizadas de Extracción:** Implementar una suite de pruebas para verificar de manera continua que las actualizaciones en las expresiones regulares no afecten la precisión de las plantillas existentes.
-3.  **Despliegue en la Nube:** Empaquetar la aplicación en un contenedor Docker para facilitar su despliegue como microservicio o tarea programada en plataformas de nube (AWS, Google Cloud).
-4.  **Sistema de Registro Profesional:** Reemplazar el flujo actual de mensajes por pantalla con el sistema nativo de logging de Python, permitiendo mantener un registro histórico de incidencias de manera persistente.
+**Conexión Directa a Correo Electrónico:** Conectarlo al correo para que lea las facturas que llegan automático, sin que alguien las tenga que descargar a mano.
+
+**Sistema de Registro :** Reemplazar el flujo actual de mensajes por pantalla con el sistema nativo de logging de Python, 
