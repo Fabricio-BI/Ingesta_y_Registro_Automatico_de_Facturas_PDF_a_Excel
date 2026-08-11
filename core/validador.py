@@ -1,20 +1,17 @@
 """
 Validador de resultados de extracción.
-
 Este es el componente que decide si el resultado de una plantilla es
-confiable o no. Hoy, si algo falla, la factura se marca para revisión
-manual. Si en el futuro agregas un fallback de IA, este mismo validador
-es el que dispararía esa decisión (sin cambiar nada más del sistema).
+confiable o no. Si algo falla , la factura se marca para revisión
+manual. Si agregamos IA como alternativa de extraccion, este validador
+disparara esa decisión (sin cambiar nada en el codigo).
 
-Idéntico en mecanismo al del proyecto de práctica -- lo único que
-cambió son los nombres de los campos que se suman en la validación
-aritmética, para reflejar el esquema real (base_imponible + monto_iva
-= total, en vez de valor_servicio + iva = total).
 """
 
 from datetime import datetime
-
+import logging
 from plantillas.esquema import CAMPOS_OBLIGATORIOS
+
+logger = logging.getLogger(__name__)
 
 TOLERANCIA_ARITMETICA = 0.05  # margen de error aceptado por redondeo
 
@@ -46,7 +43,6 @@ def _fecha_valida(valor: str | None) -> bool:
 def validar_datos(datos: dict) -> tuple[bool, list[str]]:
     """
     Valida un diccionario de datos extraídos.
-
     Returns:
         (es_valida, errores)
     """
@@ -58,6 +54,11 @@ def validar_datos(datos: dict) -> tuple[bool, list[str]]:
             errores.append(f"Falta el campo obligatorio: {campo}")
 
     if errores:
+        logger.warning(
+            f"Validación fallida (campos incompletos) para la factura del proveedor "
+            f"'{datos.get('proveedor', 'Desconocido')}' (Plantilla: {datos.get('plantilla_usada', 'Ninguna')}). "
+            f"Errores: {'; '.join(errores)}"
+        )
         return False, errores
 
     # 2. Fecha con formato válido.
@@ -77,4 +78,16 @@ def validar_datos(datos: dict) -> tuple[bool, list[str]]:
                 f"Inconsistencia aritmética: {base} + {iva} != {total}"
             )
 
+    if errores:
+        logger.warning(
+            f"Validación fallida para la factura del proveedor '{datos.get('proveedor', 'Desconocido')}' "
+            f"(Plantilla: {datos.get('plantilla_usada', 'Ninguna')}). Errores: {'; '.join(errores)}"
+        )
+    else:
+        logger.info(
+            f"Validación exitosa para la factura del proveedor '{datos.get('proveedor')}' "
+        )
+
     return (len(errores) == 0), errores
+
+

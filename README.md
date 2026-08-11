@@ -79,6 +79,21 @@ Para optimizar el tiempo de revisión, se aplican  formatos de celda específico
 
 ---
 
+## Robustez y Tolerancia a Fallos
+
+Se desarrolla el codigo pensando en soportar condiciones reales en produccion,las cuales se detallan a continuacion : 
+
+### 1. Aislamiento de Errores por Documento
+Se implementó un aislamiento con bloques de captura de excepciones en el bucle principal. Si un PDF resulta ilegible o está dañado, el sistema captura el error de lectura, registra el incidente de forma organizada en el reporte de salida con estado `"error de lectura"`, y continúa procesando el resto de las facturas del lote de forma ininterrumpida.
+
+### 2. Escritura Segura de Reportes (Defensa de Bloqueo de Excel)
+El exportador maneja la excepción de permisos (`PermissionError`). Si detecta que el archivo está bloqueado o el usuarioo lo mantiene abierto al iniciar la extraccon , genera de forma automática una copia de seguridadcon una una marca de tiempo (ej. `facturas_extraidas_20260811_162354.xlsx`) e informa detalladamente al usuario a través del sistema de logging.
+
+### 3. Registro (Logging)
+Se integró el sistema nativo de logging de Python (`core/logger.py`), reemplazando las impresiones de consola tradicionales. Se almacena un historial detallado de las ejecuciones, advertencias de validación e incidencias en el archivo `logs/procesamiento.log` para auditoría y depuración posterior.
+
+---
+
 ## Guía de Uso
 
 ### Requisitos Previos
@@ -109,8 +124,9 @@ Para optimizar el tiempo de revisión, se aplican  formatos de celda específico
 
 ## Próximos Pasos y Escalabilidad
 
-Con el fin de integrar este sistema en flujos de trabajo más amplios y robustos, se contemplan las siguientes mejoras operativas:
+Con el fin de integrar este sistema en flujos de trabajo más amplios e contemplan las siguientes mejoras operativas:
 
-**Conexión Directa a Correo Electrónico:** Conectarlo al correo para que lea las facturas que llegan automático, sin que alguien las tenga que descargar a mano.
+**Conexión Directa a Correo Electrónico:** Conectarlo al correo para que lea las facturas que llegan de forma automática, sin necesidad de descarga manual.
 
-**Sistema de Registro :** Reemplazar el flujo actual de mensajes por pantalla con el sistema nativo de logging de Python, 
+---
+

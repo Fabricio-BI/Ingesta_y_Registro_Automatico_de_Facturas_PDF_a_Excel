@@ -1,7 +1,6 @@
 
 from plantillas.esquema import Plantilla
-
-# Plantilla Banco Cordillera  
+ 
 PLANTILLA_BANCO_CORDILLERA = Plantilla(
     id="banco_cordillera",
     nombre_proveedor="Banco Cordillera",
@@ -20,8 +19,6 @@ PLANTILLA_BANCO_CORDILLERA = Plantilla(
     },
 )
 
-
-# Plantilla Banco Productivo Nacional
 PLANTILLA_BANCO_PRODUCTIVO_NACIONAL = Plantilla(
     id="banco_productivo_nacional",
     nombre_proveedor="Banco Productivo Nacional",
@@ -43,9 +40,6 @@ PLANTILLA_BANCO_PRODUCTIVO_NACIONAL = Plantilla(
     },
 )
 
-
-
-# Plantilla Banco Solidaridad Andina
 
 PLANTILLA_BANCO_SOLIDARIDAD_ANDINA = Plantilla(
     id="banco_solidaridad_andina",

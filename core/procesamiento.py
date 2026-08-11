@@ -1,22 +1,19 @@
+import logging
 import re
 from markitdown import MarkItDown
 from plantillas.esquema import CAMPOS_FACTURA, Plantilla
 from plantillas.registro import PLANTILLAS_REGISTRADAS
 
+logger = logging.getLogger(__name__)
 
-
-# Funcion de conversion de PDF a Markdown
 
 _md = MarkItDown()
-
 
 def convertir_pdf_a_markdown(ruta_pdf: str) -> str:
     """
     Convierte un PDF a texto Markdown.
-
-    Args:
+     Args:
         ruta_pdf: ruta al archivo PDF de la factura.
-
     Returns:
         Texto en formato Markdown (tablas incluidas como | col | col |).
     """
@@ -24,18 +21,18 @@ def convertir_pdf_a_markdown(ruta_pdf: str) -> str:
     return resultado.text_content
 
 
-
-# Funcion de deteccion de plantilla  .
 def detectar_plantilla(texto_markdown: str) -> Plantilla | None:
-    """Busca, en orden, la primera plantilla registrada cuyo identificador coincida con el texto de la factura """
+    """Busca, en orden, la primera plantilla registrada cuyo 
+        identificador coincida con el texto de la factura 
+    """
     for plantilla in PLANTILLAS_REGISTRADAS:
         if re.search(plantilla.identificador_regex, texto_markdown):
+            logger.info(f"Plantilla detectada exitosamente: '{plantilla.id}'")
             return plantilla
+    logger.warning("No se reconoció ninguna plantilla registrada para el texto de esta factura.")
     return None
 
 
-
-# Funcion de extraccion : Aplicar los patrones de una Plantilla sobre un texto y devuelve un diccionario de campos.
 def extraer_datos(texto_markdown: str, plantilla: Plantilla) -> dict:
     """ Aplica los patrones de una plantilla sobre el texto de la factura """
     datos = {campo: None for campo in CAMPOS_FACTURA}

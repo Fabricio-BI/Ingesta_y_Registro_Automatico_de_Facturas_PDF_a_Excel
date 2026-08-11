@@ -1,15 +1,12 @@
 """
 Script de EXPLORACIÓN — no forma parte del pipeline principal.
-
 """
 
 import glob
 import os
-
 from core.procesamiento import convertir_pdf_a_markdown
 
 CARPETA_ENTRADA = "facturas_pdf"
-
 
 def main():
     rutas_pdf = sorted(glob.glob(os.path.join(CARPETA_ENTRADA, "*.pdf")))

@@ -23,17 +23,3 @@ PLANTILLAS_REGISTRADAS = [
     PLANTILLA_TARJETA_CUMBRE_NORTIS,
     PLANTILLA_TARJETA_CUMBRE_ELITE_PAY,
 ]
-
-
-
-
-
-# from plantillas.banco_productivo_nacional import PLANTILLA_BANCO_PRODUCTIVO_NACIONAL
-# from plantillas.banco_cordillera import PLANTILLA_BANCO_CORDILLERA
-# from plantillas.banco_solidaridad_andina import PLANTILLA_BANCO_SOLIDARIDAD_ANDINA
-# from plantillas.tarjeta_cumbre import (
-#     PLANTILLA_TARJETA_CUMBRE_ZENITH,
-#     PLANTILLA_TARJETA_CUMBRE_PRISMA,
-#     PLANTILLA_TARJETA_CUMBRE_NORTIS,
-#     PLANTILLA_TARJETA_CUMBRE_ELITE_PAY,
-# )

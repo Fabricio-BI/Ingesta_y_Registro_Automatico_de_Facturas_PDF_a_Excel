@@ -3,6 +3,7 @@ __pycache__/
 *.pyc
 .DS_Store
 .clineignore
+desktop.ini
 # Excluir archivos .bat
 *.bat
 
@@ -10,7 +11,9 @@ __pycache__/
 .env
 
 # Archivos generados por el proyecto (no son código fuente)
+assets/
 salida/*.xlsx
+logs/
 log_ejecuciones.txt
 
 # Archivos de PyInstaller (si se genera el ejecutable)

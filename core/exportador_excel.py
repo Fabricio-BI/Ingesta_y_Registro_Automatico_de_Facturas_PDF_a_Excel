@@ -1,16 +1,15 @@
 """
 Exportación de resultados a un archivo Excel.
-
-Cada fila representa una factura procesada, incluyendo metadatos útiles
-para auditar el sistema: qué plantilla se usó y si la factura quedó
-marcada para revisión manual.
 """
-
+import os
+import logging
+from datetime import datetime
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill
 from openpyxl.utils import get_column_letter
-
 from plantillas.esquema import CAMPOS_FACTURA
+
+logger = logging.getLogger(__name__)
 
 COLUMNAS = CAMPOS_FACTURA + ["plantilla_usada", "estado", "errores"]
 
@@ -53,4 +52,15 @@ def exportar_a_excel(resultados: list[dict], ruta_salida: str) -> None:
     for col_idx, nombre_columna in enumerate(COLUMNAS, start=1):
         ws.column_dimensions[get_column_letter(col_idx)].width = max(18, len(nombre_columna) + 4)
 
-    wb.save(ruta_salida)
+    try:
+        wb.save(ruta_salida)
+    except PermissionError:
+        base, ext = os.path.splitext(ruta_salida)
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        ruta_alternativa = f"{base}_{timestamp}{ext}"
+        
+        logger.error(
+            f"¡ALERTA!: No se pudo guardar el archivo en '{ruta_salida}' porque está abierto por otro programa o usuario.\n"
+            f"Se ha guardado una copia segura en: '{ruta_alternativa}'"
+        )
+        wb.save(ruta_alternativa)
