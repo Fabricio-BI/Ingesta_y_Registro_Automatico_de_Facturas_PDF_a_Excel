@@ -7,6 +7,9 @@ El equipo contable destina muchas horas a descargar facturas de proveedores recu
 La implementación del proyecto reduce la carga operativa y el tiempo destinado a la digitación manual y, además, aplicando la validación de montos, asegura la precisión de la información extraída antes de su registro definitivo.
 
 
+> **Nota sobre los datos:** Este proyecto usa datos sintéticos. El problema de negocio es real y los nombres de empresas, RUCs , bancos y facturas son ficticias siguiendo la estructura real pero desarrollados unicamente para probar el desarrollo . 
+
+
 ## Enfoque de Procesamiento: Reglas Deterministas y Respaldo con Inteligencia Artificial
 
 
@@ -83,13 +86,13 @@ Para optimizar el tiempo de revisión, se aplican  formatos de celda específico
 
 Se desarrolla el codigo pensando en soportar condiciones reales en produccion,las cuales se detallan a continuacion : 
 
-### 1. Aislamiento de Errores por Documento
-Se implementó un aislamiento con bloques de captura de excepciones en el bucle principal. Si un PDF resulta ilegible o está dañado, el sistema captura el error de lectura, registra el incidente de forma organizada en el reporte de salida con estado `"error de lectura"`, y continúa procesando el resto de las facturas del lote de forma ininterrumpida.
+### Aislamiento de Errores por Documento
+Se implementó un aislamiento con bloques de captura de excepciones en el bucle principal. Si un PDF resulta ilegible o está dañado, el sistema captura el error de lectura, registra el incidente en el reporte de salida con estado `"error de lectura"`, y continúa procesando el resto de las facturas del lote de forma ininterrumpida.
 
-### 2. Escritura Segura de Reportes (Defensa de Bloqueo de Excel)
+### Escritura Segura de Reportes (Defensa de Bloqueo de Excel)
 El exportador maneja la excepción de permisos (`PermissionError`). Si detecta que el archivo está bloqueado o el usuarioo lo mantiene abierto al iniciar la extraccon , genera de forma automática una copia de seguridadcon una una marca de tiempo (ej. `facturas_extraidas_20260811_162354.xlsx`) e informa detalladamente al usuario a través del sistema de logging.
 
-### 3. Registro (Logging)
+### Registro (Logging)
 Se integró el sistema nativo de logging de Python (`core/logger.py`), reemplazando las impresiones de consola tradicionales. Se almacena un historial detallado de las ejecuciones, advertencias de validación e incidencias en el archivo `logs/procesamiento.log` para auditoría y depuración posterior.
 
 ---
