@@ -11,7 +11,7 @@ desktop.ini
 .env
 
 # Archivos generados por el proyecto (no son código fuente)
-assets/
+assets
 salida/*.xlsx
 logs/
 log_ejecuciones.txt
