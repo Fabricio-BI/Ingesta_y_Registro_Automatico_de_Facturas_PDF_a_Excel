@@ -1,10 +1,7 @@
 
 import logging
-import os
 from logging.handlers import RotatingFileHandler
-
-CARPETA_LOGS = "logs"
-ARCHIVO_LOGS = os.path.join(CARPETA_LOGS, "procesamiento.log")
+from source.paths import LOG_DIR,LOG_FILE
 
 
 def setup_logger():
@@ -33,10 +30,10 @@ def setup_logger():
 
     # 4. Intentar crear carpeta y handler de archivo (con tolerancia a fallos de permisos)
     try:
-        os.makedirs(CARPETA_LOGS, exist_ok=True)
+        LOG_DIR.mkdir(parents=True, exist_ok=True)
 
         handler_archive = RotatingFileHandler(
-            ARCHIVO_LOGS,
+            LOG_FILE,
             maxBytes=10 * 1024 * 1024,  # 10 Megabytes
             backupCount=5,
             encoding="utf-8",
@@ -46,7 +43,7 @@ def setup_logger():
     except (OSError, PermissionError) as e:
         # Si falla por permisos de disco, advertimos y continuamos operando solo por consola
         logger.warning(
-            f"No se pudo inicializar el archivo de logs en '{ARCHIVO_LOGS}' por problemas de permisos ({e}). "
+            f"No se pudo inicializar el archivo de logs en '{LOG_FILE}' por problemas de permisos ({e}). "
             f"La aplicación continuará registrando únicamente por consola."
         )
 
