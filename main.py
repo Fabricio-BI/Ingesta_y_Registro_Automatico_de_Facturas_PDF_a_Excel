@@ -1,19 +1,18 @@
 import logging
-import glob
-import os
 
-from core.logger import setup_logger
+from source.log_config import setup_logger
 from core.procesamiento import convertir_pdf_a_markdown, detectar_plantilla, extraer_datos
 from core.validador import validar_datos
 from core.exportador_excel import exportar_a_excel
 from core.extractor_ia import extraer_con_ia
+from source.paths import RAW_DIR, PROCESSED_DIR
 
 
 setup_logger()
 logger = logging.getLogger(__name__)
 
-CARPETA_ENTRADA = "facturas_pdf"
-ARCHIVO_SALIDA = "salida/facturas_extraidas.xlsx"
+# Definimos el archivo de salida usando el Path procesado
+ARCHIVO_SALIDA = PROCESSED_DIR / "facturas_extraidas.xlsx"
 
 
 def procesar_factura(ruta_pdf: str) -> dict:
@@ -21,13 +20,15 @@ def procesar_factura(ruta_pdf: str) -> dict:
     Procesa una sola factura PDF y devuelve su resultado como diccionario,
     listo para exportar a Excel.
     """
-    nombre_archivo = os.path.basename(ruta_pdf)
-    texto_markdown = convertir_pdf_a_markdown(ruta_pdf)
+    # Si viene como objeto Path, aseguramos extraer solo el nombre del archivo
+    nombre_archivo = ruta_pdf.name if hasattr(ruta_pdf, "name") else str(ruta_pdf)
+    
+    texto_markdown = convertir_pdf_a_markdown(str(ruta_pdf))
     plantilla = detectar_plantilla(texto_markdown)
 
     if plantilla is None:
         # Ningún proveedor conocido reconoce esta factura, probar con IA.
-        logger.warning(f"sin plantilla, probando con IA ")
+        logger.warning("sin plantilla, probando con IA")
         datos = extraer_con_ia(texto_markdown)
         if datos is None:
             return {
@@ -48,15 +49,15 @@ def procesar_factura(ruta_pdf: str) -> dict:
 
 def main():
     logger.info("INICIANDO PROCESO DE EXTRACCIÓN PDF A EXCEL")
-    rutas_pdf = sorted(glob.glob(os.path.join(CARPETA_ENTRADA, "*.pdf")))
+    rutas_pdf = sorted(RAW_DIR.glob("*.pdf"))
 
     if not rutas_pdf:
-        logger.warning(f"No se encontraron PDFs en '{CARPETA_ENTRADA}/'.")
+        logger.warning(f"No se encontraron PDFs en '{RAW_DIR}'.")
         return
 
     resultados = []
     for ruta_pdf in rutas_pdf:
-        logger.info(f"Procesando: {ruta_pdf}")
+        logger.info(f"Procesando: {ruta_pdf.name}")
         try:
             resultado = procesar_factura(ruta_pdf)
             resultados.append(resultado)
@@ -67,7 +68,7 @@ def main():
             else:
                 logger.warning(f"  -> estado: {estado}")
         except Exception as e:
-            nombre_archivo = os.path.basename(ruta_pdf)
+            nombre_archivo = ruta_pdf.name
             logger.error(f"  -> ERROR CRÍTICO al procesar '{nombre_archivo}': {e}")
             resultados.append({
                 "proveedor": "Desconocido",
@@ -77,10 +78,12 @@ def main():
                 "plantilla_usada": "ninguna"
             })
 
-    os.makedirs(os.path.dirname(ARCHIVO_SALIDA), exist_ok=True)
+    # Asegura que la carpeta processed exista antes de guardar
+    PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
+    
     exportar_a_excel(resultados, ARCHIVO_SALIDA)
     logger.info(f"Listo. Resultados guardados en: {ARCHIVO_SALIDA}")
-    logger.info("PROCESO COMPLETADO EXITOSAMENTE ")
+    logger.info("PROCESO COMPLETADO EXITOSAMENTE")
 
 
 if __name__ == "__main__":

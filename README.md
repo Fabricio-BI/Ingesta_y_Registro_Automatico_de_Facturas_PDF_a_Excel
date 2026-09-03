@@ -51,22 +51,34 @@ Se define un esquema unificado de datos contables. Este esquema es consumido por
 El validador aritmético comprueba que la suma de la Base Imponible y el IVA coincida exactamente con el Total registrado en la factura. En caso de discrepancias, el sistema aísla el registro para proteger la integridad del reporte contable final.
 
 
-```
-├── main.py                     # Orquestador principal del pipeline de facturación
-├── explorar_factura.py         # Utilidad para analizar el contenido de nuevos PDFs
-├── procesar_conciliacion.bat   # Acceso directo para Windows (ejecución sin usar consola)
-├── core/
+
+```text
+Ingesta_y_Registro_Automatico_de_Facturas/
+│
+├── core/                       # Lógica principal del sistema de extracción
+│   ├── exportador_excel.py     # Generación de reportes finales en Excel
+│   ├── extractor_ia.py         # Extracción con modelos de IA (Gemini API)
 │   ├── procesamiento.py        # Conversión de PDF y despacho según proveedor
-│   ├── validador.py            # Comprobaciones matemáticas y campos obligatorios
-│   ├── extractor_ia.py         # Extracción asistida con la API de Google Gemini
-│   └── exportador_excel.py     # Generación del archivo Excel estructurado y con formato visual
-├── plantillas/
+│   └── validador.py            # Comprobaciones matemáticas y campos obligatorios
+│
+├── data/                       
+│   ├── processed/              # Carpeta de destino del reporte Excel final
+│   └── raw/                    # Carpeta contenedora de facturas para procesar
+│
+├── logs/                       # Archivos de registro del sistema
+│
+├── plantillas/                 # Definición y registro de plantillas de lectura de cada factura
 │   ├── esquema.py              # Definición de campos obligatorios y formato
 │   ├── plantillas_fct.py       # Expresiones de extracción específicas por proveedor
 │   └── registro.py             # Registro de formatos y emisores activos
-├── facturas_pdf/               # Carpeta contenedora de facturas para procesar
-└── salida/                     # Carpeta de destino del reporte Excel final
-```
+│
+├── source/                     
+│   ├── log_config.py           # Configuración centralizada de Logging
+│   └── paths.py                # Definición centralizada de rutas (pathlib)
+│
+├── explorar_factura.py         # Script utilitario de inspección/pruebas
+└── main.py                     # Script principal de ejecución del pipeline
+
 
 ---
 
@@ -117,11 +129,11 @@ Se integró el sistema nativo de logging de Python (`core/logger.py`), reemplaza
 
 ### Instrucciones de Ejecución
 
-1.  Deposite las facturas en formato PDF que desea conciliar dentro de la carpeta `facturas_pdf/`.
+1.  Deposite las facturas en formato PDF que desea conciliar dentro de la carpeta `data/raw/`.
 2.  Inicie el procesamiento de la forma que le resulte más conveniente:
-    *   **Doble Clic (Windows):** Ejecute el archivo `procesar_conciliacion.bat` directamente desde su explorador de archivos.
+    *   **Doble Clic (Windows):** Ejecute un archivo .bat directamente desde su explorador de archivos.
     *   **Consola de comandos:** Ejecute el comando `python main.py`.
-3.  Abra el reporte generado en `salida/facturas_extraidas.xlsx` y revise únicamente las filas marcadas en color rojo.
+3.  Abra el reporte generado en `data/processed//facturas_extraidas.xlsx` y revise únicamente las filas marcadas en color rojo.
 
 ---
 
@@ -130,6 +142,8 @@ Se integró el sistema nativo de logging de Python (`core/logger.py`), reemplaza
 Con el fin de integrar este sistema en flujos de trabajo más amplios e contemplan las siguientes mejoras operativas:
 
 **Conexión Directa a Correo Electrónico:** Conectarlo al correo para que lea las facturas que llegan de forma automática, sin necesidad de descarga manual.
+
+**Interfaz de Usuario:**: Desarrollar un ejecutable autónomo (.exe) con una interfaz gráfica intuitiva .Esto permitirá a usuarios no técnicos cargar facturas , monitorear el progreso de procesamiento , visualizar alertas de validación y descargar reportes consolidados sin interactuar con la consola de comandos.
 
 ---
 
