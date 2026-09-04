@@ -20,3 +20,4 @@ log_ejecuciones.txt
 build/
 dist/
 *.spec
+.env.example

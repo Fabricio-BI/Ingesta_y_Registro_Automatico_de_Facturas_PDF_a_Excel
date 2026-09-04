@@ -113,27 +113,42 @@ Se integró el sistema nativo de logging de Python (`core/logger.py`), reemplaza
 
 ### Requisitos Previos
 
-1. Disponer de Python 3.10 o superior instalado en el sistema.
-2. Instalar las dependencias necesarias mediante la consola:
+1. Disponer de **Python 3.10 o superior** instalado en el sistema.
+2. Instalar las dependencias del proyecto:
    ```bash
    pip install -r requirements.txt
    ```
-3. Configurar la clave de acceso del modelo de inteligencia artifical  para habilitar el procesamiento  de facturas no clasificadas:
+3. **(Opcional)** Si deseas que el sistema pueda procesar facturas de
+   proveedores no registrados en el catálogo, configura una clave de
+   Gemini. El repositorio incluye un archivo `.env.example` como plantilla:
    ```bash
-   # En Windows (CMD)
-   set MODELO_API_KEY=tu_api_key_aquí
+   # Linux / macOS
+   cp .env.example .env
 
-   # En Linux/macOS
-   export MODELO_API_KEY="tu_api_key_aquí"
+   # Windows (PowerShell)
+   copy .env.example .env
    ```
+   Luego edita el archivo `.env` resultante y reemplaza `tu_api_key_aqui`
+   por una clave válida obtenida en [Google AI Studio](https://aistudio.google.com/app/apikey).
+
+   > **Nota:** Sin clave de Gemini, las facturas de proveedores desconocidos
+   > (por ejemplo `banco_meridiano.pdf` de los datos de prueba) quedarán
+   > marcadas como "sin plantilla" en el reporte. El resto del pipeline
+   > funciona con normalidad.
 
 ### Instrucciones de Ejecución
 
-1.  Deposite las facturas en formato PDF que desea conciliar dentro de la carpeta `data/raw/`.
-2.  Inicie el procesamiento de la forma que le resulte más conveniente:
-    *   **Doble Clic (Windows):** Ejecute un archivo .bat directamente desde su explorador de archivos.
-    *   **Consola de comandos:** Ejecute el comando `python main.py`.
-3.  Abra el reporte generado en `data/processed//facturas_extraidas.xlsx` y revise únicamente las filas marcadas en color rojo.
+1.  **Datos de prueba incluidos:** el repositorio ya contiene 12 facturas
+    PDF sintéticas en la carpeta `data/raw/`, listas para probar el
+    pipeline de inmediato. Si quieres procesar tus propias facturas,
+    reemplaza el contenido de esa carpeta por tus archivos PDF.
+2.  Ejecuta el pipeline desde la raíz del proyecto:
+    ```bash
+    python main.py
+    ```
+3.  Al finalizar, abre el reporte generado en
+    `data/processed/facturas_extraidas.xlsx`. Las filas con errores de
+    validación aparecen resaltadas en rojo claro.
 
 ---
 
