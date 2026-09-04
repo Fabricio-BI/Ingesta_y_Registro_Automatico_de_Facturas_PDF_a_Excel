@@ -11,13 +11,14 @@ import os
 
 from dotenv import load_dotenv
 from google import genai
+
 from plantillas.esquema import CAMPOS_FACTURA
 
 logger = logging.getLogger(__name__)
 
 load_dotenv()  # Lee el archivo .env (si existe) y carga sus variables
 
-MODELO = "gemini-3.5-flash"
+MODELO =  os.environ.get("GEMINI_MODEL",  "gemini-3.6-flash")
 
 _DESCRIPCION_CAMPOS = {
     "ruc_proveedor": "RUC del proveedor emisor de la factura (solo dígitos)",
@@ -88,7 +89,7 @@ def extraer_con_ia(texto_markdown: str) -> dict | None:
             contents=prompt,
             config={
                 "response_mime_type": "application/json",
-                "response_schema": _construir_esquema_json(),
+                "response_schema": _construir_esquema_json()
             },
         )
         datos = json.loads(respuesta.text)

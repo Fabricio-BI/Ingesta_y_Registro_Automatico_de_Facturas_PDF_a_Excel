@@ -7,8 +7,9 @@ disparara esa decisión (sin cambiar nada en el codigo).
 
 """
 
-from datetime import datetime
 import logging
+from datetime import datetime
+
 from plantillas.esquema import CAMPOS_OBLIGATORIOS
 
 logger = logging.getLogger(__name__)
@@ -89,5 +90,3 @@ def validar_datos(datos: dict) -> tuple[bool, list[str]]:
         )
 
     return (len(errores) == 0), errores
-
-

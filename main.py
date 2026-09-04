@@ -1,12 +1,16 @@
 import logging
+from pathlib import Path
 
-from source.log_config import setup_logger
-from core.procesamiento import convertir_pdf_a_markdown, detectar_plantilla, extraer_datos
-from core.validador import validar_datos
 from core.exportador_excel import exportar_a_excel
 from core.extractor_ia import extraer_con_ia
-from source.paths import RAW_DIR, PROCESSED_DIR
-
+from core.procesamiento import (
+    convertir_pdf_a_markdown,
+    detectar_plantilla,
+    extraer_datos,
+)
+from core.validador import validar_datos
+from source.log_config import setup_logger
+from source.paths import PROCESSED_DIR, RAW_DIR
 
 setup_logger()
 logger = logging.getLogger(__name__)
@@ -15,14 +19,14 @@ logger = logging.getLogger(__name__)
 ARCHIVO_SALIDA = PROCESSED_DIR / "facturas_extraidas.xlsx"
 
 
-def procesar_factura(ruta_pdf: str) -> dict:
+def procesar_factura(ruta_pdf: Path) -> dict:
     """
     Procesa una sola factura PDF y devuelve su resultado como diccionario,
     listo para exportar a Excel.
     """
     # Si viene como objeto Path, aseguramos extraer solo el nombre del archivo
-    nombre_archivo = ruta_pdf.name if hasattr(ruta_pdf, "name") else str(ruta_pdf)
-    
+    nombre_archivo = ruta_pdf
+
     texto_markdown = convertir_pdf_a_markdown(str(ruta_pdf))
     plantilla = detectar_plantilla(texto_markdown)
 
@@ -67,7 +71,7 @@ def main():
                 logger.info(f"  -> estado: {estado}")
             else:
                 logger.warning(f"  -> estado: {estado}")
-        except Exception as e:
+        except Exception as e: # noqa: BLE001
             nombre_archivo = ruta_pdf.name
             logger.error(f"  -> ERROR CRÍTICO al procesar '{nombre_archivo}': {e}")
             resultados.append({
@@ -80,7 +84,7 @@ def main():
 
     # Asegura que la carpeta processed exista antes de guardar
     PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
-    
+
     exportar_a_excel(resultados, ARCHIVO_SALIDA)
     logger.info(f"Listo. Resultados guardados en: {ARCHIVO_SALIDA}")
     logger.info("PROCESO COMPLETADO EXITOSAMENTE")

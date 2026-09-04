@@ -1,6 +1,8 @@
 import logging
 import re
+
 from markitdown import MarkItDown
+
 from plantillas.esquema import CAMPOS_FACTURA, Plantilla
 from plantillas.registro import PLANTILLAS_REGISTRADAS
 
@@ -22,8 +24,8 @@ def convertir_pdf_a_markdown(ruta_pdf: str) -> str:
 
 
 def detectar_plantilla(texto_markdown: str) -> Plantilla | None:
-    """Busca, en orden, la primera plantilla registrada cuyo 
-        identificador coincida con el texto de la factura 
+    """Busca, en orden, la primera plantilla registrada cuyo
+        identificador coincida con el texto de la factura
     """
     for plantilla in PLANTILLAS_REGISTRADAS:
         if re.search(plantilla.identificador_regex, texto_markdown):

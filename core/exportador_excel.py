@@ -1,12 +1,15 @@
 """
 Exportación de resultados a un archivo Excel.
 """
-import os
 import logging
+import os
 from datetime import datetime
+from pathlib import Path
+
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill
 from openpyxl.utils import get_column_letter
+
 from plantillas.esquema import CAMPOS_FACTURA
 
 logger = logging.getLogger(__name__)
@@ -19,7 +22,7 @@ FUENTE_NORMAL = Font(name="Arial")
 RELLENO_ERROR = PatternFill(start_color="FCE4E4", end_color="FCE4E4", fill_type="solid")
 
 
-def exportar_a_excel(resultados: list[dict], ruta_salida: str) -> None:
+def exportar_a_excel(resultados: list[dict], ruta_salida: str | Path) -> None:
     """
     Escribe una lista de resultados de facturas a un archivo .xlsx.
 
@@ -58,7 +61,7 @@ def exportar_a_excel(resultados: list[dict], ruta_salida: str) -> None:
         base, ext = os.path.splitext(ruta_salida)
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         ruta_alternativa = f"{base}_{timestamp}{ext}"
-        
+
         logger.error(
             f"¡ALERTA!: No se pudo guardar el archivo en '{ruta_salida}' porque está abierto por otro programa o usuario.\n"
             f"Se ha guardado una copia segura en: '{ruta_alternativa}'"
