@@ -1,11 +1,10 @@
 """
 Esquema base del proyecto  los 10
 campos que se buscan en cualquier factura, sin importar el banco emisor.
-El destino final es un Anexo Transaccional 
+El destino final es un Anexo Transaccional
 """
 
 from dataclasses import dataclass, field
-
 
 CAMPOS_FACTURA = [
     "ruc_proveedor",

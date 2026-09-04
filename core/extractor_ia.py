@@ -92,6 +92,11 @@ def extraer_con_ia(texto_markdown: str) -> dict | None:
                 "response_schema": _construir_esquema_json()
             },
         )
+        if respuesta.text is None:
+            logger.error(
+                "Gemini no devolvió texto en la respuesta durante la extracción."
+            )
+            return None
         datos = json.loads(respuesta.text)
         return datos
     except Exception:

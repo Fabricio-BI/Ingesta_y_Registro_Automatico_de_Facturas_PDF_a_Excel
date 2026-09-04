@@ -78,7 +78,7 @@ def main():
                 "proveedor": "Desconocido",
                 "numero_factura": nombre_archivo,
                 "estado": "error de lectura",
-                "errores": f"El PDF está dañado o es ilegible: {str(e)}",
+                "errores": f"El PDF está dañado o es ilegible: {e}",
                 "plantilla_usada": "ninguna"
             })
 

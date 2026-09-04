@@ -37,7 +37,7 @@ def detectar_plantilla(texto_markdown: str) -> Plantilla | None:
 
 def extraer_datos(texto_markdown: str, plantilla: Plantilla) -> dict:
     """ Aplica los patrones de una plantilla sobre el texto de la factura """
-    datos = {campo: None for campo in CAMPOS_FACTURA}
+    datos : dict[str ,str| None]= {campo: None for campo in CAMPOS_FACTURA}
     datos["proveedor"] = plantilla.nombre_proveedor
     datos["plantilla_usada"] = plantilla.id
 

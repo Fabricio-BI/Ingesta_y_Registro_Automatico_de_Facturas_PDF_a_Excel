@@ -33,6 +33,7 @@ def exportar_a_excel(resultados: list[dict], ruta_salida: str | Path) -> None:
     """
     wb = Workbook()
     ws = wb.active
+    assert ws is not None
     ws.title = "Facturas"
 
     # Encabezados
@@ -59,7 +60,7 @@ def exportar_a_excel(resultados: list[dict], ruta_salida: str | Path) -> None:
         wb.save(ruta_salida)
     except PermissionError:
         base, ext = os.path.splitext(ruta_salida)
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S") # noqa: DTZ005
         ruta_alternativa = f"{base}_{timestamp}{ext}"
 
         logger.error(

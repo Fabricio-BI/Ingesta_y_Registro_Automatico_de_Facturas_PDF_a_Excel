@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 TOLERANCIA_ARITMETICA = 0.05  # margen de error aceptado por redondeo
 
 
-def normalizar_numero(valor: str) -> float | None:
+def normalizar_numero(valor: str | None) -> float | None:
     """
     Convierte un número en formato latino (punto = miles, coma = decimales,
     ej. "1.234,56") a float de Python.
@@ -35,7 +35,7 @@ def _fecha_valida(valor: str | None) -> bool:
     if not valor:
         return False
     try:
-        datetime.strptime(valor, "%d/%m/%Y")
+        datetime.strptime(valor, "%d/%m/%Y") # noqa: DTZ007
         return True
     except ValueError:
         return False
